@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 import joblib
 
 @st.cache_resource
@@ -109,9 +107,8 @@ POLISH_MAPPINGS = {
 
 
 
-
 st.set_page_config(
-    page_title="Projekt Streamlit",
+    page_title="Employee Predictor",
     page_icon="📊",
     layout="wide"
 )
@@ -255,22 +252,28 @@ elif page == "🧠 Moduł Predykcyjny":
 
         st.subheader("Wynik Predykcji")
         if prediction[0] == 1:
+            st.error(f"⚠️ **Wysokie ryzyko utraty kandydata!** (Prawdopodobieństwo: {prediction_proba[0]:.2f})")
             st.write("Model przewiduje, że kandydat **poszukuje** zmiany pracy (target = 1).")
         else:
+            st.success(f"✅ **Kandydat stabilny.** (Prawdopodobieństwo: {prediction_proba[0]:.2f})")
             st.write("Model przewiduje, że kandydat **nie poszukuje** zmiany pracy (target = 0).")
 
 
 elif page == "ℹ️ O projekcie":
-    st.title("ℹ️ Projekt Streamlit")
+    st.title("ℹ️ Projekt Eployee Predictor")
     st.write("""
-    Rozszerzona wersja aplikacji stworzona jako baza pod projekt końcowy.  
-    Możesz teraz:
-    - analizować dane,
-    - tworzyć wykresy,
-    - filtrować tabelę,
-    - pobierać wyniki,
-    - **wykonywać predykcje ML**,
-    - dodawać dynamiczne elementy.
+        Dane wykorzystywane w projekcie do trenowania modelu o nazwie aug_train.csv oraz
+        dane testowe aug_test.csv. Wymagane pliki pobraliśmy z serwisu Kaggle od użytkownika
+        Mobius (https://www.kaggle.com/datasets/arashnic/hr-analytics-job-change-of-data-
+        scientists)
+        
+        Projekt opiera się na danych tabularnych przedstawiających charakterystykę kandydatów
+        w ujęciu demograficznym oraz zawodowym. Wykorzystane cechy obejmują m.in. poziom
+        edukacji, typ uczelni, doświadczenie zawodowe itd.
+        
+        Odpowiednie zastowanie tego systemu może przyczynić się do pogłębienia kompetencji
+        oddanych i zaangażowanych pracowników, wynagradzając pozytywne z perspektywy firmy
+        podejście.
     """)
 
-    st.caption("Autorzy: Mikołaj Górecki, Michał Lutomirski, Jan Matłosz — ")
+    st.caption("Autorzy: Mikołaj Górecki, Michał Lutomirski, Jan Matłosz")
