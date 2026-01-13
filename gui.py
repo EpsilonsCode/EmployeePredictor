@@ -123,7 +123,7 @@ page = st.sidebar.radio(
 )
 
 if page == "🏠 Strona główna":
-    st.title("EmployeePredictor")
+    st.title("🏠 EmployeePredictor")
 
     st.write("""
         Tematem projektu jest stworzenie modelu, który służy do przewidywania czy pracownik szuka innej pracy, 
