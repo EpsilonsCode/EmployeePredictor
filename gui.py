@@ -8,7 +8,7 @@ import joblib
 @st.cache_resource
 def load_model_bundle():
     try:
-        bundle = joblib.load("model_bundle.joblib")
+        bundle = joblib.load("src/model_bundle.joblib")
         return bundle
     except FileNotFoundError:
         st.error("Brak pliku 'model_bundle.joblib'. Najpierw wytrenuj model.")
