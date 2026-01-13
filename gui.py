@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
 
-# Load TPOT pipeline
 @st.cache_resource
 def load_model_bundle():
     try:
@@ -19,7 +18,6 @@ bundle = load_model_bundle()
 if bundle is None:
     st.stop()
 
-# Unpack everything
 model_pipeline = bundle["pipeline"]
 imputer_cat = bundle["imputer_cat"]
 imputer_num = bundle["imputer_num"]
@@ -124,38 +122,31 @@ if "items" not in st.session_state:
 st.sidebar.title("📌 Nawigacja")
 page = st.sidebar.radio(
     "Wybierz stronę:",
-    ["🏠 Strona główna", "📂 Moduł danych", "📈 Wizualizacje", "🧠 Moduł Predykcyjny", "📝 Session State", "ℹ️ O projekcie"]
+    ["🏠 Strona główna", "📂 Moduł danych", "🧠 Moduł Predykcyjny", "ℹ️ O projekcie"]
 )
 
 if page == "🏠 Strona główna":
-    st.title("📘 Aplikacja Streamlit — projekt rozszerzony")
+    st.title("EmployeePredictor")
 
     st.write("""
-    Witaj w poprawionej, estetycznej wersji aplikacji stworzonej w **Streamlit**.
-
-    Aplikacja demonstruje:
-    - ✔ pracę z danymi (wgrywanie, filtrowanie, statystyki),
-    - ✔ interaktywne wizualizacje,
-    - ✔ **Moduł Predykcyjny** z wytrenowanym modelem Gradient Boosting Classifier,
-    - ✔ obsługę session_state,
-    - ✔ wielostronicowy układ aplikacji,
-    - ✔ nowoczesny wygląd i intuicyjny interfejs.
+        Tematem projektu jest stworzenie modelu, który służy do przewidywania czy pracownik szuka innej pracy, 
+        w związku z czym zamierza się zwolnić. Modelu można użyć w celu ograniczenia strat.
     """)
 
-    st.image(
-        "https://static.streamlit.io/examples/dice.jpg",
-        width=300,
-        caption="Grafika demo"
-    )
 
-    with st.expander("📦 Funkcje aplikacji"):
+    with st.expander("📦 Funkcjonalnść projektu"):
         st.write("""
-        - Wgrywanie plików CSV  
-        - Profil danych + statystyki  
-        - Filtrowanie tabel  
-        - Wybór kolumn do wizualizacji  
-        - Wykresy: line, histogram, scatter, heatmap  
-        - **Model Predykcyjny dla kandydata (target: chęć zmiany pracy)** - Dodawanie elementów przez użytkownika  
+        Projekt:
+        
+        Rozwiązuje problem klasyfikacji binarnej (HR Churn): Przewiduje zmienną target (czy pracownik szuka nowej pracy) na podstawie cech demograficznych i zawodowych zawartych w pliku aug_train.csv.
+
+        Realizuje Custom Data Cleaning: Implementuje dedykowane funkcje parsujące "brudne" dane tekstowe do formatu numerycznego, obsługując przypadki brzegowe dla kolumn experience (np. ">20" → 21), company_size (parsowanie zakresów "10/49") oraz last_new_job .
+        
+        Przygotowuje Feature Pipeline: Przetwarza dane wejściowe poprzez usunięcie kolumn geograficznych (city), uzupełnienie braków danych (imputacja modą dla kategorii i średnią dla liczb), LabelEncoding zmiennych kategorycznych oraz standaryzację (StandardScaler) .
+        
+        Wykorzystuje AutoML (TPOT): Zamiast ręcznie dobieranego modelu (jak błędnie sugeruje dokumentacja mówiąca o Gradient Boosting ), aplikacja uruchamia TPOTClassifier – algorytm genetyczny, który przez 6 generacji automatycznie szuka i optymalizuje najlepszy potok klasyfikacyjny.
+        
+        Generuje artefakty wdrożeniowe: Po treningu serializuje kompletny stan "środowiska" (model, imputery, enkodery, skaler) do pliku model_bundle.joblib oraz eksportuje kod najlepszego znalezionego pipeline'u do best_model_pipeline.py, co pozwala na natychmiastowe użycie modelu na nowych danych
         """)
 
 elif page == "📂 Moduł danych":
@@ -198,56 +189,8 @@ elif page == "📂 Moduł danych":
     else:
         st.info("Wgraj plik, aby rozpocząć analizę.")
 
-elif page == "📈 Wizualizacje":
-
-    st.title("📈 Interaktywne wizualizacje")
-
-    uploaded = st.file_uploader("Wgraj plik CSV", type=["csv"], key="upload2")
-
-    if not uploaded:
-        st.info("Aby stworzyć wykres — wgraj dane.")
-    else:
-        df = pd.read_csv(uploaded)
-
-        st.subheader("Wybór kolumn")
-
-        numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
-
-        if len(numeric_cols) == 0:
-            st.error("Brak kolumn numerycznych — nie da się stworzyć wykresów.")
-            st.stop()
-
-        col_x = st.selectbox("Kolumna X:", numeric_cols)
-        col_y = st.selectbox("Kolumna Y:", numeric_cols, index=1 if len(numeric_cols) > 1 else 0)
-
-        chart_type = st.radio("Rodzaj wykresu:", ["Line", "Histogram", "Scatter", "Heatmap"])
-
-        if chart_type == "Line":
-            st.line_chart(df[[col_x, col_y]])
-
-        elif chart_type == "Histogram":
-            fig, ax = plt.subplots()
-            ax.hist(df[col_x].dropna(), bins=25)
-            ax.set_title(f"Histogram: {col_x}")
-            st.pyplot(fig)
-
-        elif chart_type == "Scatter":
-            fig, ax = plt.subplots()
-            ax.scatter(df[col_x], df[col_y])
-            ax.set_xlabel(col_x)
-            ax.set_ylabel(col_y)
-            st.pyplot(fig)
-
-        elif chart_type == "Heatmap":
-            fig, ax = plt.subplots(figsize=(8, 6))
-            sns.heatmap(df.corr(), cmap="coolwarm", annot=True, ax=ax)
-            ax.set_title("Macierz korelacji")
-            st.pyplot(fig)
 
 
-
-
-# In the prediction page:
 elif page == "🧠 Moduł Predykcyjny":
 
     st.title("🧠 Predykcja chęci zmiany pracy (ML)")
@@ -279,7 +222,6 @@ elif page == "🧠 Moduł Predykcyjny":
             return reverse_map.get(selected_pl_value, selected_pl_value)
 
         print(get_raw_value(POLISH_MAPPINGS["major_discipline"], experience))
-        # Step 1: Prepare input row
         input_data = pd.DataFrame([{
             "gender": get_raw_value(POLISH_MAPPINGS["gender"], gender_pl),
             "relevent_experience": get_raw_value(POLISH_MAPPINGS["relevent_experience"], relevent_experience_pl),
@@ -293,58 +235,30 @@ elif page == "🧠 Moduł Predykcyjny":
             "training_hours": training_hours
         }])
 
-        # Step 2: Impute missing numeric values
         input_data[numeric_cols_model] = imputer_num.transform(input_data[numeric_cols_model])
 
-        # Step 3: Impute missing categorical values
         input_data[categorical_cols_model] = imputer_cat.transform(input_data[categorical_cols_model])
 
-        # Step 4: Encode categorical columns using fitted LabelEncoders
         for col in categorical_cols_model:
             input_data[col] = label_encoders[col].transform(input_data[col].astype(str))
 
-        # Step 5: Scale numeric columns using fitted scaler
         input_data[numeric_cols_model] = scaler.transform(input_data[numeric_cols_model])
 
-        # Step 6: Reorder columns exactly as in training
         input_data = input_data[
             ["gender", "relevent_experience", "enrolled_university", "education_level",
              "major_discipline", "experience", "company_size", "company_type",
              "last_new_job", "training_hours"]
         ]
 
-        # Step 7: Predict
         prediction = model_pipeline.predict(input_data)
         prediction_proba = model_pipeline.predict_proba(input_data)[:, 1]
 
         st.subheader("Wynik Predykcji")
         if prediction[0] == 1:
-            st.error(f"⚠️ **Wysokie ryzyko utraty kandydata!** (Prawdopodobieństwo: {prediction_proba[0]:.2f})")
             st.write("Model przewiduje, że kandydat **poszukuje** zmiany pracy (target = 1).")
         else:
-            st.success(f"✅ **Kandydat stabilny.** (Prawdopodobieństwo: {prediction_proba[0]:.2f})")
             st.write("Model przewiduje, że kandydat **nie poszukuje** zmiany pracy (target = 0).")
 
-
-elif page == "📝 Session State":
-
-    st.title("📝 Lista elementów użytkownika")
-
-    with st.form(key="add_form"):
-        item = st.text_input("Wprowadź element:")
-        submit = st.form_submit_button("Dodaj")
-
-        if submit and item.strip():
-            st.session_state["items"].append(item.strip())
-            st.success(f"Dodano: **{item}**")
-
-    st.subheader("Twoje elementy:")
-
-    if st.session_state["items"]:
-        for i, el in enumerate(st.session_state["items"], 1):
-            st.write(f"{i}. {el}")
-    else:
-        st.info("Brak dodanych elementów.")
 
 elif page == "ℹ️ O projekcie":
     st.title("ℹ️ Projekt Streamlit")
